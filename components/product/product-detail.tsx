@@ -17,7 +17,13 @@ export function ProductDetail({ product }: { product: Product }) {
   const hasVariants = product.variants.length > 0;
   const variants: ProductVariant[] = hasVariants
     ? product.variants
-    : [{ id: `base-${product.id}`, color: "Standard", stock: product.stockQty }];
+    : [
+        {
+          id: `base-${product.id}`,
+          color: "Standard",
+          stock: product.stockQty,
+        },
+      ];
 
   const [variantId, setVariantId] = useState(
     () => (variants.find((v) => v.stock > 0) ?? variants[0]).id,
@@ -27,11 +33,18 @@ export function ProductDetail({ product }: { product: Product }) {
 
   const selected = variants.find((v) => v.id === variantId) ?? variants[0];
   const original = selected.price ?? product.price;
-  const unit = selected.discountPrice ?? selected.price ?? product.discountPrice ?? product.price;
+  const unit =
+    selected.discountPrice ??
+    selected.price ??
+    product.discountPrice ??
+    product.price;
   const onSale = unit < original;
   const soldOut = selected.stock <= 0;
 
-  const images = product.images.length > 0 ? product.images.map((i) => i.url) : [getProductImage(product)];
+  const images =
+    product.images.length > 0
+      ? product.images.map((i) => i.url)
+      : [getProductImage(product)];
 
   function handleAdd() {
     add({
@@ -62,13 +75,26 @@ export function ProductDetail({ product }: { product: Product }) {
                   i === imgIndex ? "border-foreground" : "border-transparent"
                 }`}
               >
-                <Image src={src} alt="" fill sizes="64px" className="object-cover" />
+                <Image
+                  src={src}
+                  alt=""
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
               </button>
             ))}
           </div>
         )}
         <div className="relative aspect-[4/5] flex-1 bg-muted">
-          <Image src={images[imgIndex]} alt={product.name} fill priority sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
+          <Image
+            src={images[imgIndex]}
+            alt={product.name}
+            fill
+            priority
+            sizes="(min-width: 768px) 50vw, 100vw"
+            className="object-cover"
+          />
         </div>
       </div>
 
@@ -87,7 +113,9 @@ export function ProductDetail({ product }: { product: Product }) {
           {onSale ? (
             <>
               <span className="font-medium">{formatPrice(unit)}</span>{" "}
-              <span className="text-sm text-muted-foreground line-through">{formatPrice(original)}</span>
+              <span className="text-sm text-muted-foreground line-through">
+                {formatPrice(original)}
+              </span>
             </>
           ) : (
             <span className="font-medium">{formatPrice(unit)}</span>
@@ -97,7 +125,8 @@ export function ProductDetail({ product }: { product: Product }) {
         {hasVariants && (
           <div className="mt-8">
             <p className="mb-3 text-[11px] uppercase tracking-[0.18em]">
-              Color: <span className="text-muted-foreground">{selected.color}</span>
+              Color:{" "}
+              <span className="text-muted-foreground">{selected.color}</span>
             </p>
             <div className="flex flex-wrap gap-2">
               {variants.map((v) => (
@@ -109,7 +138,9 @@ export function ProductDetail({ product }: { product: Product }) {
                   }}
                   disabled={v.stock <= 0}
                   className={`border px-4 py-2 text-xs uppercase tracking-[0.12em] transition-colors disabled:cursor-not-allowed disabled:text-muted-foreground disabled:line-through ${
-                    v.id === variantId ? "border-foreground bg-foreground text-white" : "border-border hover:border-foreground"
+                    v.id === variantId
+                      ? "border-foreground bg-foreground text-white"
+                      : "border-border hover:border-foreground"
                   }`}
                 >
                   {v.color}
@@ -139,7 +170,11 @@ export function ProductDetail({ product }: { product: Product }) {
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            {soldOut ? "Out of stock" : selected.stock <= 5 ? `Only ${selected.stock} left` : "In stock"}
+            {soldOut
+              ? "Out of stock"
+              : selected.stock <= 5
+                ? `Only ${selected.stock} left`
+                : "In stock"}
           </p>
         </div>
 
@@ -157,8 +192,12 @@ export function ProductDetail({ product }: { product: Product }) {
 
         {product.description && (
           <div className="mt-10 border-t border-border pt-6">
-            <h2 className="mb-3 text-[11px] uppercase tracking-[0.18em]">Details</h2>
-            <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/80">{product.description}</p>
+            <h2 className="mb-3 text-[11px] uppercase tracking-[0.18em]">
+              Details
+            </h2>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/80">
+              {product.description}
+            </p>
           </div>
         )}
       </div>

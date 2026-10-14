@@ -7,7 +7,8 @@ import type { Product, ProductQuery } from "@/types/product";
 const PAGE_SIZE = 12;
 
 export type SearchParams = Record<string, string | string[] | undefined>;
-const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+const first = (v: string | string[] | undefined) =>
+  Array.isArray(v) ? v[0] : v;
 
 const FILTERS = [
   { key: "all", label: "All" },
@@ -77,7 +78,9 @@ export async function ProductListing({
       // The API filters by one category_id, so fetch the parent and each
       // subcategory, merge, and paginate here (fine while the catalog is small).
       const results = await Promise.all(
-        categoryIds.map((id) => getProducts({ ...base, category_id: id, limit: 100 })),
+        categoryIds.map((id) =>
+          getProducts({ ...base, category_id: id, limit: 100 }),
+        ),
       );
       const map = new Map<string, Product>();
       results.forEach((r) => r.items.forEach((p) => map.set(p.id, p)));
@@ -85,7 +88,12 @@ export async function ProductListing({
       total = all.length;
       items = all.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     } else {
-      const r = await getProducts({ ...base, category_id: categoryIds?.[0], page, limit: PAGE_SIZE });
+      const r = await getProducts({
+        ...base,
+        category_id: categoryIds?.[0],
+        page,
+        limit: PAGE_SIZE,
+      });
       items = r.items;
       total = r.pagination.total;
     }
@@ -96,7 +104,10 @@ export async function ProductListing({
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <Shell title={searchMode ? `Results for “${q}”` : title} count={failed ? null : total}>
+    <Shell
+      title={searchMode ? `Results for “${q}”` : title}
+      count={failed ? null : total}
+    >
       {(parent || subcategories.length > 0) && (
         <div className="mb-4 flex flex-wrap gap-2">
           {parent && <Chip href={`/c/${parent.id}`}>← {parent.name}</Chip>}
@@ -110,7 +121,11 @@ export async function ProductListing({
 
       <div className="mb-10 flex flex-wrap gap-2">
         {FILTERS.map((x) => (
-          <Chip key={x.key} href={href(basePath, { f: x.key, q })} active={f === x.key}>
+          <Chip
+            key={x.key}
+            href={href(basePath, { f: x.key, q })}
+            active={f === x.key}
+          >
             {x.label}
           </Chip>
         ))}
@@ -121,7 +136,9 @@ export async function ProductListing({
           We couldn&apos;t load products just now. Please refresh in a moment.
         </p>
       ) : items.length === 0 ? (
-        <p className="py-16 text-center text-sm text-muted-foreground">No products found.</p>
+        <p className="py-16 text-center text-sm text-muted-foreground">
+          No products found.
+        </p>
       ) : (
         <ProductGrid products={items} />
       )}
@@ -129,7 +146,10 @@ export async function ProductListing({
       {totalPages > 1 && (
         <nav className="mt-14 flex items-center justify-center gap-6 text-[11px] uppercase tracking-[0.18em]">
           {page > 1 ? (
-            <Link href={href(basePath, { f, q, page: page - 1 })} className="underline underline-offset-4">
+            <Link
+              href={href(basePath, { f, q, page: page - 1 })}
+              className="underline underline-offset-4"
+            >
               Previous
             </Link>
           ) : (
@@ -139,7 +159,10 @@ export async function ProductListing({
             Page {page} of {totalPages}
           </span>
           {page < totalPages ? (
-            <Link href={href(basePath, { f, q, page: page + 1 })} className="underline underline-offset-4">
+            <Link
+              href={href(basePath, { f, q, page: page + 1 })}
+              className="underline underline-offset-4"
+            >
               Next
             </Link>
           ) : (
@@ -151,11 +174,21 @@ export async function ProductListing({
   );
 }
 
-function Shell({ title, count, children }: { title: string; count: number | null; children: React.ReactNode }) {
+function Shell({
+  title,
+  count,
+  children,
+}: {
+  title: string;
+  count: number | null;
+  children: React.ReactNode;
+}) {
   return (
     <div className="mx-auto max-w-[1600px] px-4 py-10 md:px-6 md:py-14">
       <div className="mb-8 flex items-baseline gap-3">
-        <h1 className="text-[13px] font-medium uppercase tracking-[0.2em]">{title}</h1>
+        <h1 className="text-[13px] font-medium uppercase tracking-[0.2em]">
+          {title}
+        </h1>
         {count !== null && (
           <span className="text-xs text-muted-foreground">
             {count} {count === 1 ? "item" : "items"}
@@ -167,12 +200,22 @@ function Shell({ title, count, children }: { title: string; count: number | null
   );
 }
 
-function Chip({ href, active, children }: { href: string; active?: boolean; children: React.ReactNode }) {
+function Chip({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <Link
       href={href}
       className={`border px-4 py-2 text-[11px] uppercase tracking-[0.14em] transition-colors ${
-        active ? "border-foreground bg-foreground text-white" : "border-border hover:border-foreground"
+        active
+          ? "border-foreground bg-foreground text-white"
+          : "border-border hover:border-foreground"
       }`}
     >
       {children}
