@@ -72,7 +72,7 @@ export default function TrackOrderPage() {
         <button
           type="submit"
           disabled={track.isPending}
-          className="w-full bg-foreground py-4 text-[11px] font-medium uppercase tracking-[0.18em] text-white hover:bg-foreground/90 disabled:opacity-60"
+          className="w-full bg-foreground py-4 text-[11px] font-medium uppercase tracking-[0.18em] text-background hover:bg-foreground/90 disabled:opacity-60"
         >
           {track.isPending ? "Looking up…" : "Track order"}
         </button>

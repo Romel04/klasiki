@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,12 +13,13 @@ import { createOrder } from "@/lib/api/orders";
 import { useDistricts, useThanas } from "@/lib/hooks/use-locations";
 import { useCartLines, useCartStore, useCartSubtotal } from "@/lib/cart/cart-store";
 import { useCartHydrated } from "@/lib/cart/use-cart-hydrated";
+import { useCartRevalidation } from "@/lib/cart/use-cart-revalidation";
 import { formatPrice } from "@/lib/format";
 
 const LAST_ORDER_KEY = "klasiki_last_order";
 
 const field =
-  "w-full border border-border bg-white px-3 py-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground disabled:opacity-50";
+  "w-full border border-border bg-background px-3 py-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground disabled:opacity-50";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -25,6 +27,8 @@ export default function CheckoutPage() {
   const lines = useCartLines();
   const subtotal = useCartSubtotal();
   const clear = useCartStore((s) => s.clear);
+  // Re-check prices/stock against the live products before the customer pays.
+  const { checking } = useCartRevalidation(hydrated);
 
   const {
     register,
@@ -68,6 +72,15 @@ export default function CheckoutPage() {
     onError: (err) => toast.error(err instanceof Error ? err.message : "Couldn't place your order."),
   });
 
+  // Orders can take a while on a cold backend. Warn before the tab is closed
+  // mid-request so a customer doesn't leave and then place the order twice.
+  useEffect(() => {
+    if (!place.isPending) return;
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [place.isPending]);
+
   if (!hydrated) return <div className="mx-auto max-w-5xl px-6 py-20 text-sm text-muted-foreground">Loading…</div>;
 
   // After success the cart is cleared before navigating — don't flash "empty".
@@ -79,7 +92,7 @@ export default function CheckoutPage() {
         <p className="text-sm text-muted-foreground">Your cart is empty.</p>
         <Link
           href="/shop"
-          className="mt-6 inline-block border border-foreground px-7 py-3.5 text-[11px] uppercase tracking-[0.18em] hover:bg-foreground hover:text-white transition-colors"
+          className="mt-6 inline-block border border-foreground px-7 py-3.5 text-[11px] uppercase tracking-[0.18em] hover:bg-foreground hover:text-background transition-colors"
         >
           Continue shopping
         </Link>
@@ -91,7 +104,7 @@ export default function CheckoutPage() {
     <div className="mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14">
       <h1 className="mb-10 text-[13px] font-medium uppercase tracking-[0.2em]">Checkout</h1>
 
-      <form onSubmit={handleSubmit((v) => place.mutate(v))} className="grid gap-12 md:grid-cols-[1fr_380px]">
+      <form onSubmit={handleSubmit((v) => !place.isPending && place.mutate(v))} className="grid gap-12 md:grid-cols-[1fr_380px]">
         <div className="space-y-6">
           <div className="grid gap-5 md:grid-cols-2">
             <Field label="Full name" error={errors.customerName?.message}>
@@ -168,16 +181,23 @@ export default function CheckoutPage() {
               <dd>{formatPrice(subtotal + (delivery ?? 0))}</dd>
             </div>
           </dl>
-          <p className="mt-2 text-xs text-muted-foreground">Final total is confirmed when your order is placed.</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Delivery charge is based on your district. You pay the total in cash on delivery.
+          </p>
 
-          <p className="mt-6 text-xs text-muted-foreground">Payment: cash on delivery.</p>
           <button
             type="submit"
-            disabled={place.isPending}
-            className="mt-4 w-full bg-foreground py-4 text-[11px] font-medium uppercase tracking-[0.18em] text-white transition-colors hover:bg-foreground/90 disabled:opacity-60"
+            disabled={place.isPending || checking}
+            className="mt-6 w-full bg-foreground py-4 text-[11px] font-medium uppercase tracking-[0.18em] text-background transition-colors hover:bg-foreground/90 disabled:opacity-60"
           >
-            {place.isPending ? "Placing order…" : "Place order"}
+            {place.isPending ? "Placing order…" : checking ? "Checking availability…" : "Place order"}
           </button>
+          {place.isPending && (
+            <p className="mt-3 text-xs text-muted-foreground" role="status">
+              Please keep this page open. This can take up to a minute the first time. Don&apos;t press the
+              button again.
+            </p>
+          )}
         </aside>
       </form>
     </div>

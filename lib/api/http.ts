@@ -1,5 +1,14 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 export interface ApiEnvelope<T> {
   status: number;
   success: boolean;
@@ -15,7 +24,7 @@ export async function apiEnvelope<T>(
   errorMessage = "Request failed",
 ): Promise<ApiEnvelope<T>> {
   const res = await fetch(`${API_URL}${path}`, init);
-  if (!res.ok) throw new Error(errorMessage);
+  if (!res.ok) throw new ApiError(errorMessage, res.status);
   return res.json();
 }
 

@@ -1,6 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getFooterCategories } from "@/lib/server/data";
+import { categoryPath } from "@/lib/slug";
+
+// Set these in .env / Vercel. The column is hidden until at least one exists.
+const FACEBOOK_URL = process.env.NEXT_PUBLIC_FACEBOOK_URL;
+const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL;
 
 const HELP_LINKS = [
   { href: "/track-order", label: "Track order" },
@@ -37,7 +42,7 @@ export async function SiteFooter() {
 
           <FooterColumn title="Shop" className="md:col-span-2">
             {top.map((c) => (
-              <FooterLink key={c.id} href={`/c/${c.id}`}>
+              <FooterLink key={c.id} href={categoryPath(c)}>
                 {c.name}
               </FooterLink>
             ))}
@@ -60,11 +65,12 @@ export async function SiteFooter() {
             ))}
           </FooterColumn>
 
-          <FooterColumn title="Follow" className="md:col-span-2">
-            {/* TODO: replace with the real Klasiki social URLs */}
-            <FooterLink href="https://facebook.com">Facebook</FooterLink>
-            <FooterLink href="https://instagram.com">Instagram</FooterLink>
-          </FooterColumn>
+          {(FACEBOOK_URL || INSTAGRAM_URL) && (
+            <FooterColumn title="Follow" className="md:col-span-2">
+              {FACEBOOK_URL && <FooterLink href={FACEBOOK_URL}>Facebook</FooterLink>}
+              {INSTAGRAM_URL && <FooterLink href={INSTAGRAM_URL}>Instagram</FooterLink>}
+            </FooterColumn>
+          )}
         </div>
 
         <div className="mt-16 flex flex-col gap-3 border-t border-white/15 pt-6 text-xs text-white/50 md:flex-row md:items-center md:justify-between">

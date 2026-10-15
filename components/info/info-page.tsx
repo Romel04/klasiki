@@ -7,7 +7,10 @@ export function InfoPage({ title, children }: { title: string; children: React.R
   );
 }
 
-// Visible on purpose so nothing placeholder ships unnoticed. Search "TODO" before launch.
+// Placeholder chip. Visible in development so nothing is forgotten, but never
+// rendered in production, so customers can't see an unfinished page.
+// Search the repo for "<Todo" before launch and fill every one in.
 export function Todo({ children }: { children: React.ReactNode }) {
+  if (process.env.NODE_ENV === "production") return null;
   return <span className="bg-muted px-1.5 py-0.5 text-xs text-foreground">[TODO: {children}]</span>;
 }

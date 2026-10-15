@@ -77,25 +77,52 @@ function toQueryString(q: ProductQuery) {
   return params.toString();
 }
 
+export async function getProduct(id: string, opts: { timeoutMs?: number } = {}): Promise<Product> {
+  const data = await apiJson<ApiProduct>(
+    `/products/${id}`,
+    {
+      next: { revalidate: 60 },
+      ...(opts.timeoutMs ? { signal: AbortSignal.timeout(opts.timeoutMs) } : {}),
+    },
+    "Failed to fetch product",
+  );
+  return fromApiProduct(data);
+}
+
+// GET /products returns NO images or variants, but product cards show an image
+// carousel. So each listed product is enriched from GET /products/{id} (cached
+// 60s, requests run in parallel). A slow/failed detail call never fails the
+// list: that card simply falls back to its placeholder image.
+// Better long-term: ask the backend to include `images` in the list response,
+// then pass { images: false } here and delete the enrichment.
+const ENRICH_TIMEOUT_MS = 8000;
+
 export async function getProducts(
   q: ProductQuery = {},
+  opts: { images?: boolean } = {},
 ): Promise<{ items: Product[]; pagination: Pagination }> {
   const env = await apiEnvelope<ApiProduct[]>(
     `/products?${toQueryString(q)}`,
     { next: { revalidate: 60 } },
     "Failed to fetch products",
   );
+  let items = env.data.map(fromApiProduct);
+
+  if (opts.images !== false) {
+    items = await Promise.all(
+      items.map(async (p) => {
+        try {
+          const full = await getProduct(p.id, { timeoutMs: ENRICH_TIMEOUT_MS });
+          return { ...p, images: full.images, variants: full.variants };
+        } catch {
+          return p;
+        }
+      }),
+    );
+  }
+
   return {
-    items: env.data.map(fromApiProduct),
+    items,
     pagination: env.pagination ?? { total: env.data.length, page: 1, limit: env.data.length, totalPages: 1 },
   };
-}
-
-export async function getProduct(id: string): Promise<Product> {
-  const data = await apiJson<ApiProduct>(
-    `/products/${id}`,
-    { next: { revalidate: 60 } },
-    "Failed to fetch product",
-  );
-  return fromApiProduct(data);
 }

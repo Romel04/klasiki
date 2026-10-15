@@ -1,18 +1,38 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductListing, type SearchParams } from "@/components/shop/product-listing";
 import { ListingSkeleton } from "@/components/shop/listing-skeleton";
-import { getCategories } from "@/lib/api/categories";
+import { DynamicMarker } from "@/components/dynamic-marker";
+import { getAllCategories } from "@/lib/server/data";
+import { categoryPath, idFromParam } from "@/lib/slug";
+
+type Params = Promise<{ id: string }>;
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const id = idFromParam((await params).id);
+  const categories = await getAllCategories().catch(() => null);
+  const category = id ? categories?.find((c) => c.id === id) : undefined;
+  if (!category) return { title: "Shop" };
+
+  return {
+    title: category.name,
+    description: `Shop ${category.name} from Klasiki. Handcrafted, made with care.`,
+    alternates: { canonical: categoryPath(category) },
+  };
+}
 
 async function CategoryContent({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Params;
   searchParams: Promise<SearchParams>;
 }) {
-  const { id } = await params;
-  const categories = await getCategories().catch(() => null);
+  const id = idFromParam((await params).id);
+  if (!id) notFound();
+
+  const categories = await getAllCategories().catch(() => null);
 
   if (!categories) {
     return (
@@ -31,7 +51,7 @@ async function CategoryContent({
   return (
     <ProductListing
       title={category.name}
-      basePath={`/c/${id}`}
+      basePath={categoryPath(category)}
       searchParams={searchParams}
       categoryIds={[id, ...subcategories.map((c) => c.id)]}
       parent={parent}
@@ -44,12 +64,15 @@ export default function CategoryPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Params;
   searchParams: Promise<SearchParams>;
 }) {
   return (
-    <Suspense fallback={<ListingSkeleton />}>
-      <CategoryContent params={params} searchParams={searchParams} />
-    </Suspense>
+    <>
+      <Suspense fallback={<ListingSkeleton />}>
+        <CategoryContent params={params} searchParams={searchParams} />
+      </Suspense>
+      <DynamicMarker />
+    </>
   );
 }

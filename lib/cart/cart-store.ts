@@ -12,11 +12,20 @@ export interface CartLine {
   maxStock: number;
 }
 
+// Result of re-checking a cart line against the live product.
+export interface CartLineUpdate {
+  variantId: string;
+  remove?: boolean;
+  unitPrice?: number;
+  maxStock?: number;
+}
+
 interface CartState {
   lines: CartLine[];
   add: (line: CartLine) => void;
   setQty: (variantId: string, qty: number) => void;
   remove: (variantId: string) => void;
+  reconcile: (updates: CartLineUpdate[]) => void;
   clear: () => void;
 }
 
@@ -48,6 +57,25 @@ export const useCartStore = create<CartState>()(
         })),
       remove: (variantId) =>
         set((s) => ({ lines: s.lines.filter((l) => l.variantId !== variantId) })),
+      // Apply live price/stock to saved lines; drop lines that are gone or sold out.
+      reconcile: (updates) =>
+        set((s) => {
+          const byId = new Map(updates.map((u) => [u.variantId, u]));
+          const lines = s.lines
+            .filter((l) => !byId.get(l.variantId)?.remove)
+            .map((l) => {
+              const u = byId.get(l.variantId);
+              if (!u) return l;
+              const maxStock = u.maxStock ?? l.maxStock;
+              return {
+                ...l,
+                unitPrice: u.unitPrice ?? l.unitPrice,
+                maxStock,
+                quantity: Math.max(1, Math.min(l.quantity, maxStock)),
+              };
+            });
+          return { lines };
+        }),
       clear: () => set({ lines: [] }),
     }),
     {

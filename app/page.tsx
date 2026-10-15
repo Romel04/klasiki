@@ -2,6 +2,7 @@ import { Hero } from "@/components/home/hero";
 import { CategoryTiles } from "@/components/home/category-tiles";
 import { ProductRail } from "@/components/home/product-rail";
 import { BrandStatement } from "@/components/home/brand-statement";
+import { TrustStrip } from "@/components/home/trust-strip";
 import { getHomeData } from "@/lib/server/data";
 
 export default async function HomePage() {
@@ -22,13 +23,11 @@ export default async function HomePage() {
         </p>
       )}
       <CategoryTiles categories={topLevel} />
-      <ProductRail title="Trending" href="/shop" products={trending} />
-      <ProductRail
-        title="New arrivals"
-        href="/shop?new=1"
-        products={data?.arrivals ?? []}
-      />
+      <ProductRail title="Trending" href="/shop?f=featured" products={trending} />
+      <ProductRail title="Best sellers" href="/shop?f=best" products={data?.bestSelling ?? []} />
+      <ProductRail title="New arrivals" href="/shop?f=new" products={data?.arrivals ?? []} />
       <BrandStatement />
+      <TrustStrip />
     </>
   );
 }

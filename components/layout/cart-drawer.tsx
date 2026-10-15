@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { productPath } from "@/lib/slug";
 import Image from "next/image";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
@@ -17,6 +19,13 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
   const setQty = useCartStore((s) => s.setQty);
   const remove = useCartStore((s) => s.remove);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   return (
     <div className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`}>
       <div
@@ -24,7 +33,11 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
       />
       <aside
-        className={`absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white transition-transform duration-300 ${
+        role="dialog"
+        aria-modal="true"
+        aria-label="Shopping cart"
+        inert={!open}
+        className={`absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-background transition-transform duration-300 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -41,7 +54,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
             <Link
               href="/shop"
               onClick={onClose}
-              className="border border-foreground px-6 py-3 text-[11px] uppercase tracking-[0.18em] hover:bg-foreground hover:text-white transition-colors"
+              className="border border-foreground px-6 py-3 text-[11px] uppercase tracking-[0.18em] hover:bg-foreground hover:text-background transition-colors"
             >
               Continue shopping
             </Link>
@@ -51,7 +64,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
             <ul className="flex-1 divide-y divide-border overflow-y-auto px-5">
               {lines.map((l) => (
                 <li key={l.variantId} className="flex gap-4 py-5">
-                  <Link href={`/p/${l.productId}`} onClick={onClose} className="relative h-28 w-22 shrink-0 bg-muted">
+                  <Link href={productPath({ id: l.productId, name: l.name })} onClick={onClose} className="relative h-28 w-22 shrink-0 bg-muted">
                     <Image
                       src={l.image ?? "/samples/bag-1.svg"}
                       alt={l.name}
@@ -108,7 +121,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
               <Link
                 href="/checkout"
                 onClick={onClose}
-                className="block bg-foreground py-3.5 text-center text-[11px] uppercase tracking-[0.18em] text-white hover:bg-foreground/90"
+                className="block bg-foreground py-3.5 text-center text-[11px] uppercase tracking-[0.18em] text-background hover:bg-foreground/90"
               >
                 Checkout
               </Link>

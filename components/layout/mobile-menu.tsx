@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { categoryPath } from "@/lib/slug";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import type { CategoryNode } from "@/types/category";
@@ -17,6 +18,13 @@ export function MobileMenu({
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   return (
     <div className={`fixed inset-0 z-50 md:hidden ${open ? "" : "pointer-events-none"}`}>
       <div
@@ -24,7 +32,11 @@ export function MobileMenu({
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
       />
       <aside
-        className={`absolute inset-y-0 left-0 w-[85%] max-w-sm bg-white transition-transform duration-300 ${
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
+        inert={!open}
+        className={`absolute inset-y-0 left-0 w-[85%] max-w-sm bg-background transition-transform duration-300 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -45,7 +57,7 @@ export function MobileMenu({
             <li key={category.id}>
               <div className="flex items-center justify-between px-4 py-4">
                 <Link
-                  href={`/c/${category.id}`}
+                  href={categoryPath(category)}
                   onClick={onClose}
                   className="text-sm uppercase tracking-[0.14em]"
                 >
@@ -65,7 +77,7 @@ export function MobileMenu({
                 <ul className="bg-muted px-4 py-2">
                   {children.map((c) => (
                     <li key={c.id}>
-                      <Link href={`/c/${c.id}`} onClick={onClose} className="block py-2.5 text-sm text-foreground/80">
+                      <Link href={categoryPath(c)} onClick={onClose} className="block py-2.5 text-sm text-foreground/80">
                         {c.name}
                       </Link>
                     </li>

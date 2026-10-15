@@ -6,6 +6,9 @@ import { formatPrice } from "@/lib/format";
 
 const LAST_ORDER_KEY = "klasiki_last_order";
 
+// Set NEXT_PUBLIC_BKASH_NUMBER in .env / Vercel. Hidden until it exists.
+const BKASH_NUMBER = process.env.NEXT_PUBLIC_BKASH_NUMBER;
+
 interface LastOrder {
   orderNumber: string;
   subtotal: number;
@@ -44,7 +47,7 @@ export default function OrderConfirmationPage() {
   return (
     <div className="mx-auto max-w-xl px-6 py-16 md:py-24">
       <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Thank you, {order.name.split(" ")[0]}</p>
-      <h1 className="mt-3 text-2xl font-light">Your order has been placed.</h1>
+      <h1 className="mt-3 font-serif text-4xl font-medium">Your order has been placed.</h1>
 
       <div className="mt-8 border border-border p-6">
         <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Order number</p>
@@ -78,15 +81,33 @@ export default function OrderConfirmationPage() {
         </div>
       </dl>
 
-      <p className="mt-8 text-sm leading-relaxed text-foreground/80">
-        We&apos;ll contact you on <span className="font-medium">{order.phone}</span> to confirm your order. Confirmation is done via bKash.
-      </p>
+      <div className="mt-8 border border-border p-6 text-sm leading-relaxed text-foreground/80">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-foreground">What happens next</p>
+        <ol className="mt-4 list-decimal space-y-2 pl-5">
+          <li>
+            We&apos;ll contact you on <span className="font-medium text-foreground">{order.phone}</span> to
+            confirm your order.
+          </li>
+          <li>
+            Your order is confirmed with a bKash payment.
+            {BKASH_NUMBER ? (
+              <>
+                {" "}Send it to <span className="font-medium text-foreground">{BKASH_NUMBER}</span> and use{" "}
+                <span className="font-medium text-foreground">{order.orderNumber}</span> as the reference.
+              </>
+            ) : (
+              <> We&apos;ll share the bKash details when we call.</>
+            )}
+          </li>
+          <li>Pay the remaining total in cash when your order arrives.</li>
+        </ol>
+      </div>
 
       <div className="mt-10 flex gap-3">
-        <Link href="/track-order" className="border border-foreground px-7 py-3.5 text-[11px] uppercase tracking-[0.18em] hover:bg-foreground hover:text-white transition-colors">
+        <Link href="/track-order" className="border border-foreground px-7 py-3.5 text-[11px] uppercase tracking-[0.18em] hover:bg-foreground hover:text-background transition-colors">
           Track order
         </Link>
-        <Link href="/shop" className="bg-foreground px-7 py-3.5 text-[11px] uppercase tracking-[0.18em] text-white hover:bg-foreground/90">
+        <Link href="/shop" className="bg-foreground px-7 py-3.5 text-[11px] uppercase tracking-[0.18em] text-background hover:bg-foreground/90">
           Continue shopping
         </Link>
       </div>

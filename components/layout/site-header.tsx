@@ -14,12 +14,14 @@ import {
 import { useCategories } from "@/lib/hooks/use-categories";
 import { useCartCount } from "@/lib/cart/cart-store";
 import { buildTree } from "@/lib/categories";
+import { categoryPath } from "@/lib/slug";
+import type { Category } from "@/types/category";
 import { CartDrawer } from "./cart-drawer";
 import { MobileMenu } from "./mobile-menu";
 
-export function SiteHeader() {
+export function SiteHeader({ initialCategories }: { initialCategories?: Category[] }) {
   const router = useRouter();
-  const { data: categories = [] } = useCategories();
+  const { data: categories = [] } = useCategories(initialCategories);
   const count = useCartCount();
   const tree = useMemo(() => buildTree(categories), [categories]);
 
@@ -70,7 +72,7 @@ export function SiteHeader() {
 
   return (
     <>
-      <header ref={headerRef} className="sticky top-0 z-40 bg-white">
+      <header ref={headerRef} className="sticky top-0 z-40 bg-background">
         {/* Utility bar */}
         <div className="hidden md:block bg-foreground text-white">
           <div className="mx-auto flex h-8 max-w-[1600px] items-center justify-between px-6 text-[11px] uppercase tracking-[0.18em]">
@@ -125,7 +127,7 @@ export function SiteHeader() {
               >
                 <HugeiconsIcon icon={ShoppingBag01Icon} size={20} strokeWidth={1.5} />
                 {count > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center bg-foreground px-1 text-[10px] font-medium text-white">
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center bg-foreground px-1 text-[10px] font-medium text-background">
                     {count}
                   </span>
                 )}
@@ -152,7 +154,7 @@ export function SiteHeader() {
               return (
                 <li key={category.id} className="flex items-center gap-0.5">
                   <Link
-                    href={`/c/${category.id}`}
+                    href={categoryPath(category)}
                     onClick={() => setActiveId(null)}
                     className="text-[12px] font-medium uppercase tracking-[0.16em] hover:underline underline-offset-8"
                   >
@@ -182,7 +184,7 @@ export function SiteHeader() {
 
         {/* Mega menu panel */}
         {hasPanel && activeNode && (
-          <div className="absolute left-0 right-0 top-full hidden md:block border-b border-border bg-white">
+          <div className="absolute left-0 right-0 top-full hidden md:block border-b border-border bg-background">
             <div className="mx-auto grid max-w-[1600px] grid-cols-4 gap-10 px-6 py-8">
               <div>
                 <p className="mb-4 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
@@ -191,7 +193,7 @@ export function SiteHeader() {
                 <ul className="space-y-2.5 text-sm">
                   <li>
                     <Link
-                      href={`/c/${activeNode.category.id}`}
+                      href={categoryPath(activeNode.category)}
                       onClick={() => setActiveId(null)}
                       className="font-medium hover:underline underline-offset-4"
                     >
@@ -201,7 +203,7 @@ export function SiteHeader() {
                   {activeNode.children.map((child) => (
                     <li key={child.id}>
                       <Link
-                        href={`/c/${child.id}`}
+                        href={categoryPath(child)}
                         onClick={() => setActiveId(null)}
                         className="text-foreground/80 hover:text-foreground hover:underline underline-offset-4"
                       >
@@ -217,7 +219,7 @@ export function SiteHeader() {
 
         {/* Search drop-down */}
         {searchOpen && (
-          <div className="absolute left-0 right-0 top-full border-b border-border bg-white">
+          <div className="absolute left-0 right-0 top-full border-b border-border bg-background">
             <form onSubmit={submitSearch} className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-5">
               <HugeiconsIcon icon={Search01Icon} size={20} strokeWidth={1.5} className="text-muted-foreground" />
               <input

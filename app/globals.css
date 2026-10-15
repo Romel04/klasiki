@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+/* Klasiki storefront: black & white first. The warm saddle-tan palette is
+   admin-only. --sale is the single accent, used only for Sale / low stock. */
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
@@ -7,6 +9,7 @@
   --muted-foreground: #6b6b6b;
   --border: #e5e5e5;
   --destructive: #b42318;
+  --sale: #9a1f2e;
 }
 
 @theme inline {
@@ -16,15 +19,54 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-sale: var(--sale);
+
+  /* Tokens the shadcn components in components/ui expect. */
+  --color-primary: var(--foreground);
+  --color-primary-foreground: var(--background);
+  --color-secondary: var(--muted);
+  --color-secondary-foreground: var(--foreground);
+  --color-accent: var(--muted);
+  --color-accent-foreground: var(--foreground);
+  --color-popover: var(--background);
+  --color-popover-foreground: var(--foreground);
+  --color-input: var(--border);
+  --color-ring: var(--foreground);
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-display), ui-serif, Georgia, serif;
+
+  /* Brand rule: no rounded corners, no shadows. */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
+  --shadow-2xs: 0 0 #0000;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-xl: 0 0 #0000;
+  --shadow-2xl: 0 0 #0000;
 }
 
 @layer base {
   * { @apply border-border; }
   html { scroll-behavior: smooth; }
   body { @apply bg-background text-foreground antialiased; }
+  :focus-visible { outline: 2px solid var(--foreground); outline-offset: 2px; }
 }
 
-/* Slow, quiet image zoom used on cards/tiles */
+/* Slow, quiet image zoom used on single-image cards/tiles */
 .img-zoom { transition: transform 700ms cubic-bezier(0.2, 0.6, 0.2, 1); }
 .group:hover .img-zoom { transform: scale(1.04); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .img-zoom { transition: none; }
+  .group:hover .img-zoom { transform: none; }
+}

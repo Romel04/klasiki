@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { categoryPath } from "@/lib/slug";
 import { getProducts } from "@/lib/api/products";
 import { ProductGrid } from "@/components/product/product-grid";
 import type { Category } from "@/types/category";
@@ -110,9 +111,9 @@ export async function ProductListing({
     >
       {(parent || subcategories.length > 0) && (
         <div className="mb-4 flex flex-wrap gap-2">
-          {parent && <Chip href={`/c/${parent.id}`}>← {parent.name}</Chip>}
+          {parent && <Chip href={categoryPath(parent)}>← {parent.name}</Chip>}
           {subcategories.map((c) => (
-            <Chip key={c.id} href={`/c/${c.id}`}>
+            <Chip key={c.id} href={categoryPath(c)}>
               {c.name}
             </Chip>
           ))}
@@ -140,7 +141,7 @@ export async function ProductListing({
           No products found.
         </p>
       ) : (
-        <ProductGrid products={items} />
+        <ProductGrid products={items} priorityCount={4} />
       )}
 
       {totalPages > 1 && (
@@ -214,7 +215,7 @@ function Chip({
       href={href}
       className={`border px-4 py-2 text-[11px] uppercase tracking-[0.14em] transition-colors ${
         active
-          ? "border-foreground bg-foreground text-white"
+          ? "border-foreground bg-foreground text-background"
           : "border-border hover:border-foreground"
       }`}
     >
